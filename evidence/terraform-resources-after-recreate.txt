@@ -1,0 +1,11 @@
+data.aws_subnet.zone_a
+data.aws_subnet.zone_b
+data.aws_vpc.default
+aws_eks_cluster.capstone
+aws_eks_node_group.capstone
+aws_iam_role.eks_cluster
+aws_iam_role.eks_nodes
+aws_iam_role_policy_attachment.cni
+aws_iam_role_policy_attachment.ecr
+aws_iam_role_policy_attachment.eks_cluster
+aws_iam_role_policy_attachment.worker_node
