@@ -11,6 +11,8 @@ jobs:
   smoke-test:
     name: Docker Compose Smoke Test
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-test-password-only
 
     steps:
       - name: Checkout repository
