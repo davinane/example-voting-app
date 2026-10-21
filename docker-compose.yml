@@ -1,96 +1,81 @@
-# version is now using "compose spec"
-# v2 and v3 are now combined!
-# docker-compose v1.27+ required
-
 services:
   vote:
-    build: 
+    build:
       context: ./vote
-      target: dev
+      target: final
+    environment:
+      PORT: "8080"
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck: 
-      test: ["CMD", "curl", "-f", "http://localhost"]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8080/", timeout=3)
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
-    volumes:
-     - ./vote:/usr/local/app
     ports:
-      - "8080:80"
-    networks:
-      - front-tier
-      - back-tier
-
+      - "127.0.0.1:8080:8080"
+    networks: [ front-tier, back-tier ]
   result:
     build: ./result
-    # use nodemon rather than node for local dev
-    entrypoint: nodemon --inspect=0.0.0.0 server.js
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: postgres
     depends_on:
       db:
-        condition: service_healthy 
-    volumes:
-      - ./result:/usr/local/app
+        condition: service_healthy
     ports:
-      - "8081:80"
-      - "127.0.0.1:9229:9229"
-    networks:
-      - front-tier
-      - back-tier
-
+      - "127.0.0.1:8081:8080"
+    networks: [ front-tier, back-tier ]
   worker:
     build:
       context: ./worker
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
     depends_on:
       redis:
-        condition: service_healthy 
+        condition: service_healthy
       db:
-        condition: service_healthy 
-    networks:
-      - back-tier
-
+        condition: service_healthy
+    networks: [ back-tier ]
   redis:
-    image: redis:alpine
-    volumes:
-      - "./healthchecks:/healthchecks"
+    image: redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
     healthcheck:
-      test: /healthchecks/redis.sh
-      interval: "5s"
-    networks:
-      - back-tier
-
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [ back-tier ]
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:f7d23353e1b15400d22ebe31189f4d314b87a4c129cc400c8c2d8d4ca127bf81
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
     volumes:
-      - "db-data:/var/lib/postgresql/data"
-      - "./healthchecks:/healthchecks"
+      - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: /healthchecks/postgres.sh
-      interval: "5s"
-    networks:
-      - back-tier
-
-  # this service runs once to seed the database with votes
-  # it won't run unless you specify the "seed" profile
-  # docker compose --profile seed up -d
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [ back-tier ]
   seed:
     build: ./seed-data
-    profiles: ["seed"]
+    profiles: [ seed ]
     depends_on:
       vote:
-        condition: service_healthy 
-    networks:
-      - front-tier
+        condition: service_healthy
+    networks: [ front-tier ]
     restart: "no"
-
 volumes:
   db-data:
-
 networks:
   front-tier:
   back-tier:
