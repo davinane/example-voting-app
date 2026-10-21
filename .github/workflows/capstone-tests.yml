@@ -1,0 +1,39 @@
+name: Capstone Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Docker Compose Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run application smoke test
+        run: bash scripts/ci-smoke-test.sh
+
+      - name: Build application images for security scanning
+        run: docker compose build
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget -qO trivy.deb https://github.com/aquasecurity/trivy/releases/download/v0.69.3/trivy_0.69.3_Linux-64bit.deb
+          sudo dpkg -i trivy.deb
+
+      - name: Scan application images
+        run: |
+          for service in vote result worker; do
+            image="$(docker compose config --format json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["name"] + "-" + sys.argv[1] + ":latest")' "$service")"
+            echo "Scanning $service: $image"
+            trivy image --severity HIGH,CRITICAL --exit-code 0 "$image"
+            trivy image --scanners vuln --severity CRITICAL --ignore-unfixed --exit-code 1 "$image"
+          done
