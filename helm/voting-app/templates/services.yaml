@@ -1,0 +1,15 @@
+{{- $name := include "voting.fullname" . -}}
+{{- range $service := list "vote" "result" "redis" "db" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-{{ $service }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}-{{ $service }}
+  ports:
+    - port: {{ if eq $service "db" }}5432{{ else if eq $service "redis" }}6379{{ else }}8080{{ end }}
+      targetPort: {{ if eq $service "db" }}5432{{ else if eq $service "redis" }}6379{{ else }}8080{{ end }}
+{{- end }}

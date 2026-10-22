@@ -1,0 +1,98 @@
+{{- $name := include "voting.fullname" . -}}
+{{- range $service := list "vote" "result" "worker" "redis" "db" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}-{{ $service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}-{{ $service }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}-{{ $service }}
+    spec:
+      containers:
+        - name: {{ $service }}
+          image: {{ index $.Values.images $service | quote }}
+          imagePullPolicy: Always
+          {{- if ne $service "worker" }}
+          ports:
+            - containerPort: {{ if eq $service "db" }}5432{{ else if eq $service "redis" }}6379{{ else }}8080{{ end }}
+          {{- end }}
+          {{- if eq $service "vote" }}
+          env:
+            - name: PORT
+              value: "8080"
+            - name: REDIS_HOST
+              value: {{ $name }}-redis
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- else if eq $service "result" }}
+          env:
+            - name: POSTGRES_HOST
+              value: {{ $name }}-db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}-postgres
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- else if eq $service "worker" }}
+          env:
+            - name: REDIS_HOST
+              value: {{ $name }}-redis
+            - name: POSTGRES_HOST
+              value: {{ $name }}-db
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}-postgres
+                  key: password
+          {{- else if eq $service "db" }}
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}-postgres
+                  key: password
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U postgres -d postgres"]
+            periodSeconds: 5
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+          {{- else if eq $service "redis" }}
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            periodSeconds: 5
+          {{- end }}
+      {{- if eq $service "db" }}
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: {{ $name }}-db-data
+      {{- end }}
+{{- end }}

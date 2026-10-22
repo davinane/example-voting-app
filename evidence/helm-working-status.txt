@@ -1,0 +1,42 @@
+NAME: voting-app
+LAST DEPLOYED: Wed Oct 21 23:18:59 2026
+NAMESPACE: voting-app
+STATUS: deployed
+REVISION: 3
+DESCRIPTION: Upgrade complete
+RESOURCES:
+==> v1/Secret
+NAME                  TYPE     DATA   AGE
+voting-app-postgres   Opaque   1      6h53m
+
+==> v1/PersistentVolumeClaim
+NAME                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+voting-app-db-data   Bound    pvc-40c92090-a82f-4267-bc11-023339ba5851   2Gi        RWO            gp3            <unset>                 6h53m
+
+==> v1/Service
+NAME    TYPE           CLUSTER-IP   EXTERNAL-IP                                     PORT(S)   AGE
+redis   ExternalName   <none>       voting-app-redis.voting-app.svc.cluster.local   <none>    3m18s
+db    ExternalName   <none>   voting-app-db.voting-app.svc.cluster.local   <none>   3m18s
+voting-app-vote   ClusterIP   10.100.41.219   <none>   8080/TCP   6h53m
+voting-app-result   ClusterIP   10.100.128.89   <none>   8080/TCP   6h53m
+voting-app-redis   ClusterIP   10.100.30.122   <none>   6379/TCP   6h53m
+voting-app-db   ClusterIP   10.100.95.5   <none>   5432/TCP   6h53m
+
+==> v1/Deployment
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+voting-app-vote   1/1     1            1           6h53m
+voting-app-result   1/1   1     1     6h53m
+voting-app-worker   1/1   1     1     6h53m
+voting-app-redis   1/1   1     1     6h53m
+voting-app-db   1/1   1     1     6h53m
+
+==> v1/Pod(related)
+NAME                               READY   STATUS    RESTARTS   AGE
+voting-app-vote-5b564b699b-467vw   1/1     Running   0          3m18s
+voting-app-result-79f64f6cdc-rkmcx   1/1   Running   0     6h53m
+voting-app-worker-5797dfdcf5-5f6m6   1/1   Running   0     3m18s
+voting-app-redis-5d7c874445-j9h2n   1/1   Running   0     6h53m
+voting-app-db-67cf96fcf5-9nbxw   1/1   Running   0     10m
+
+
+TEST SUITE: None

@@ -1,0 +1,7 @@
+NAME                                 READY   STATUS             RESTARTS   AGE
+voting-app-db-67cf96fcf5-9nbxw       1/1     Running            0          13m
+voting-app-redis-5d7c874445-j9h2n    1/1     Running            0          6h56m
+voting-app-result-79f64f6cdc-rkmcx   1/1     Running            0          6h56m
+voting-app-vote-5b564b699b-467vw     1/1     Running            0          6m12s
+voting-app-vote-75dcdd8478-hlgxv     0/1     ImagePullBackOff   0          68s
+voting-app-worker-5797dfdcf5-5f6m6   1/1     Running            0          6m12s

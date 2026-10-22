@@ -1,0 +1,5 @@
+REVISION	UPDATED                 	STATUS    	CHART           	APP VERSION	DESCRIPTION
+1       	Wed Oct 21 16:28:49 2026	superseded	voting-app-0.1.0	1.0        	Release "voting-app" failed: resource Deployment/voting-app/voting-app-db not ready. status: Failed, message: Progress deadline exceeded
+2       	Wed Oct 21 23:11:55 2026	superseded	voting-app-0.1.0	1.0        	Upgrade complete
+3       	Wed Oct 21 23:18:59 2026	superseded	voting-app-0.1.0	1.0        	Upgrade complete
+4       	Wed Oct 21 23:24:03 2026	deployed  	voting-app-0.1.0	1.0        	Upgrade complete

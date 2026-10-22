@@ -1,5 +1,15 @@
 # Example Voting App
 
+## TS Academy DevOps Capstone
+
+This repository includes a DevOps capstone implementation featuring
+secure Docker images, automated GitHub Actions workflows, Terraform-managed
+Amazon EKS infrastructure, Helm deployment, and rollback testing.
+
+See [CAPSTONE.md](CAPSTONE.md) for deployment instructions,
+architecture, verification evidence, and cleanup procedures.
+
+
 A simple distributed application running across multiple Docker containers.
 
 ## Getting started
